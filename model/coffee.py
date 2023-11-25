@@ -211,10 +211,6 @@ class CoffeeModel:
             model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
             model.fit(x_train, y_train)
 
-            # Paso adicional: Muestra un árbol de decisión del bosque (puedes elegir el índice del árbol)
-            plt.figure(figsize=(12, 8))
-            plot_tree(model.estimators_[0], feature_names=x.columns, class_names=model.classes_, filled=True)
-            plt.show()
 
             # Paso 4: Realiza validación cruzada y muestra resultados
             cv_scores = cross_val_score(model, x_test, y_test, cv=5, scoring='accuracy')
@@ -229,4 +225,6 @@ class CoffeeModel:
 
         except Exception as e:
             print(f"Error en la predicción y evaluación del modelo Random Forest: {e}")
+
+
 
