@@ -216,7 +216,7 @@ class CoffeeModel:
         except Exception as e:
             print(f"Error en la predicción y evaluación del modelo SVM Gaussiano: {e}")
 
-    def random_forest(self, n_estimators=100, max_depth=1):
+    def random_forest(self, n_estimators=200, max_depth=1):
         try:
             # Paso 1: Divide tu conjunto de datos en características (x) y etiquetas (y)
             x = self.data_clean.drop(columns=['Color'])
