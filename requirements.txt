@@ -2,3 +2,8 @@ pandas
 matplotlib
 seaborn
 scikit-learn
+dash
+plotly
+dash-cytoscape
+pydantic
+tabulate

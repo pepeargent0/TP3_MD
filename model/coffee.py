@@ -6,7 +6,18 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, Ma
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.svm import SVC
 from sklearn.metrics import precision_score, recall_score, accuracy_score
+from io import BytesIO
+from tabulate import tabulate
 from sklearn.tree import plot_tree
+
+from dataclasses import dataclass
+from pydantic import BaseModel
+@dataclass
+class Graph:
+    title: str
+    imgs: str
+    description: str
+
 
 
 def _load_file(filename):
@@ -38,42 +49,87 @@ class CoffeeModel:
         Esta función se encarga de la ver los datos y gráficos
         """
         try:
-            print('Información del dataset (datos nulos y tipos de datos por columna)')
-            print(self.data.info())
-            print('Descripción estadística de los datos (min, max, media, mediana, etc.)')
-            print(self.data.describe())
+            graphs = []
+            columnas = self.data.columns
+            formatted_table = tabulate([columnas], headers='keys', tablefmt='pretty')
+            graph_info = Graph(
+                title='Columnas del CSV',
+                imgs=formatted_table,
+                description=''
+            )
+            graphs.append(graph_info)
+            data_info = self.data.info  # Llama a la función
+            print(data_info, self.data.describe())
+            formatted_table = tabulate([data_info], headers='keys', tablefmt='pretty')
 
-            columnas_numericas = self.data.select_dtypes(include='number')
+            graph_info = Graph(
+                title='Info del CSV',
+                imgs=formatted_table,
+                description='Tiene un total de 835 datos y 11 variables Se puede observar que se cuenta con 10 variables '
+                            'numéricas (int64) y 1 variable categórica (object).No hay datos nulos'
+            )
+            graphs.append(graph_info)
+            formatted_table = tabulate([self.data.describe()], headers='keys', tablefmt='pretty')
+            graph_info = Graph(
+                title='Descripción estadística de los datos (min, max, media, mediana, etc.)',
+                imgs=formatted_table,
+                description=''
+            )
+            graphs.append(graph_info)
 
-            matriz_correlacion = columnas_numericas.corr()
+            fig, ax = plt.subplots(figsize=(8, 6))
+            sns.countplot(x='Color', data=self.data, palette='viridis', ax=ax)
+            ax.set_title('Distribución de Colores')
 
-            sns.heatmap(matriz_correlacion, annot=True, cmap='coolwarm', fmt=".2f")
-            plt.ylim(len(matriz_correlacion), 0)
-            plt.xlim(0, len(matriz_correlacion))
-            plt.title("Matriz de Correlación")
-            plt.show()
+            # Guarda la figura en el objeto BytesIO
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
 
-            for column in columnas_numericas:
-                outliers_count = self._count_outliers(column)
-                print(f'Cantidad de outliers en la columna {column}: {outliers_count}')
+            # Puedes acceder a los bytes de la imagen usando buffer.getvalue()
+            bytes_imagen = buffer.getvalue()
 
-            plt.figure(figsize=(12, 8))
+            # Cierra la figura para liberar recursos
+            plt.close()
+            graph_info = Graph(
+                title='Distribución de Colores',
+                imgs=bytes_imagen,
+                description='Se puede observar que el dataset esta desbalanceado, hay una gran cantidad de color green, casi 700, mientras que de Blue-Green apenas llega a 50 y Bluish-Green a 100.'
+            )
+            graphs.append(graph_info)
+            columnas_numericas = self.data.select_dtypes(include=['int64']).columns
+            ax = self.data[columnas_numericas].hist(bins=20, figsize=(15, 10), color='blue', edgecolor='black', grid=False)
+            plt.suptitle('Histogramas de variables numéricas', x=0.5, y=1.05, fontsize=16)
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            plt.close()
+            graph_info = Graph(
+                title='Histogramas de variables numéricas',
+                imgs=buffer,
+                description='En todos los gráficos se observan 2 picos muy marcados en los extremos'
+            )
+            graphs.append(graph_info)
 
-            for i, column in enumerate(self.data.select_dtypes(include=['float64', 'int64']).columns):
-                plt.subplot(2, 2, i + 1)
-                plt.boxplot(self.data[column])
-                plt.title(f'Boxplot de la columna: {column}')
-
+            fig, axes = plt.subplots(3, 4, figsize=(15, 10))
             plt.tight_layout()
-            plt.show()
-            plt.figure(figsize=(12, 8))
-
-            for i, column in enumerate(self.data.select_dtypes(include=['float64', 'int64']).columns):
-                plt.subplot(2, 2, i + 1)
-                sns.histplot(self.data[column], kde=True)
-                plt.title(f'Distribución de la columna: {column}')
-            plt.tight_layout()
-            plt.show()
+            for i, feature in enumerate(columnas_numericas, 1):
+                row = (i - 1) // 4
+                col = (i - 1) % 4
+                sns.boxplot(x=self.data[feature], color='skyblue', ax=axes[row, col])
+                axes[row, col].set_title(f'Boxplot de {feature}')
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            bytes_imagen = buffer.getvalue()
+            plt.close()
+            graph_info = Graph(
+                title='Boxplot para visualizar outliers',
+                imgs=bytes_imagen,
+                description=':Se puede observar que hay una gran presencia de lavores outliers en casi todas las columnas menos en Scores_Moisture'
+            )
+            graphs.append(graph_info)
+            return graphs
         except Exception as e:
             print(f"Error en la visualización de datos: {e}")
 
@@ -82,13 +138,8 @@ class CoffeeModel:
         Esta función se encarga de la limpieza del dataset
         """
         try:
-            print(self.data.dtypes)
             color_dummies = pd.get_dummies(self.data['Color'], prefix='Color')
-            # Concatena las variables dummy al conjunto de datos original
             self.data_clean = pd.concat([self.data, color_dummies], axis=1)
-            # Elimina la columna original 'Color'
-            # self.data_clean = self.data_clean.drop(columns=['Color'])
-            # self.data_clean.to_csv('data_clean.csv')
         except Exception as e:
             print(f"Error en la limpieza de datos: {e}")
 
@@ -198,7 +249,7 @@ class CoffeeModel:
         except Exception as e:
             print(f"Error en la predicción y evaluación del modelo SVM Gaussiano: {e}")
 
-    def random_forest(self, n_estimators=100, max_depth=None):
+    def random_forest(self, n_estimators=100, max_depth=1):
         try:
             # Paso 1: Divide tu conjunto de datos en características (x) y etiquetas (y)
             x = self.data_clean.drop(columns=['Color'])
