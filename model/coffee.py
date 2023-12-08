@@ -10,13 +10,11 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score
 from sklearn.tree import plot_tree
 
 
-
-
-
 def _load_file(filename):
     """
     Esta función se encarga de leer el archivo csv correspondiente agregando las validaciones en el caso de que no
-    exista o surja un error Nos devuelve el dataset
+    exista o surja un error 
+    Nos devuelve el dataset
     """
     try:
         data = pd.read_csv(filename, delimiter=';')
@@ -47,23 +45,18 @@ class CoffeeModel:
             print(self.data.columns)
             print('info')
             print(self.data.info())
-            print('Tiene un total de 835 datos y 11 variables. '
-                  'Se puede observar que se cuenta con 10 variables numéricas (int64) y 1 variable categórica '
-                  '(object).No hay datos nulos')
             print(self.data.describe())
-            print('Distribución de Colores')
+            print('Distribución de la variable Color')
             plt.figure(figsize=(8, 6))
             sns.countplot(x='Color', data=self.data, palette='viridis')
-            plt.title('Distribución de Colores')
+            plt.title('Distribución de la variable Color')
             plt.show()
-            print('Se puede observar que el dataset esta desbalanceado, hay una gran cantidad de color green, casi 700, '
-                  'mientras que de Blue-Green apenas llega a 50 y Bluish-Green a 100.')
             print('Histogramas de variables numéricas')
             columnas_numericas = self.data.select_dtypes(include=['int64']).columns
             self.data[columnas_numericas].hist(bins=20, figsize=(15, 10), color='blue', edgecolor='black', grid=False)
             plt.suptitle('Histogramas de variables numéricas', x=0.5, y=1.05, fontsize=16)
+            plt.subplots_adjust(hspace=0.5, wspace=0.3)
             plt.show()
-            print('En todos los gráficos se observan 2 picos muy marcados en los extremos')
             print('Boxplot para visualizar outliers')
             plt.figure(figsize=(15, 10))
             for i, feature in enumerate(columnas_numericas, 1):
@@ -71,9 +64,8 @@ class CoffeeModel:
                 sns.boxplot(x=self.data[feature], color='skyblue')
                 plt.title(f'Boxplot de {feature}')
             plt.tight_layout()
+            plt.subplots_adjust(hspace=0.5, wspace=0.3)
             plt.show()
-            print('Se puede observar que hay una gran presencia de lavores outliers en casi todas.'
-                  'las columnas menos en Scores_Moisture')
         except Exception as e:
             print(f"Error en la visualización de datos: {e}")
 
@@ -109,6 +101,42 @@ class CoffeeModel:
             #self.data_clean = self.data
         except Exception as e:
             print(f"Error en la limpieza de datos: {e}")
+
+    def visualize_limpieza(self):
+        """
+        Esta función se encarga de la ver los datos y gráficos ya limpios
+        """
+        try:
+            print(self.data_clean)
+            print('lista de columnas luego de realizar la limpieza')
+            print(self.data_clean.columns)
+            print('info luego de realizar la limpieza')
+            print(self.data_clean.info())
+            print(self.data_clean.describe())
+            print('Distribución de la variable Color luego de realizar la limpieza')
+            plt.figure(figsize=(8, 6))
+            sns.countplot(x='Color', data=self.data_clean, palette='viridis')
+            plt.title('Distribución de la variable Color luego de realizar la limpieza')
+            plt.show()
+            print('Histogramas de variables numéricas luego de realizar la limpieza')
+            columnas_numericas = self.data_clean.select_dtypes(include=['int64', 'float64']).columns
+            self.data_clean[columnas_numericas].hist(bins=20, figsize=(15, 10), color='blue', edgecolor='black', grid=False)
+            plt.suptitle('Histogramas de variables numéricas luego de realizar la limpieza', x=0.5, y=1.05, fontsize=16)
+            plt.subplots_adjust(hspace=0.5, wspace=0.3)
+            plt.show()
+            print('Boxplot para visualizar outliers luego de realizar la limpieza')
+            plt.figure(figsize=(15, 10))
+            for i, feature in enumerate(columnas_numericas, 1):
+                plt.subplot(3, 4, i)
+                sns.boxplot(x=self.data_clean[feature], color='skyblue')
+                plt.title(f'Boxplot de {feature} luego de realizar la limpieza')
+            plt.tight_layout()
+            plt.subplots_adjust(hspace=0.5, wspace=0.3)
+            plt.show()
+        except Exception as e:
+            print(f"Error en la visualización de datos limpios: {e}")
+
+
 
     def _count_outliers(self, column):
         try:

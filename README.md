@@ -7,3 +7,5 @@ TP 3 Minería de Datos
 
 ### Instalación
 pip install -r requirements.txt
+
+Ejecutar main.py
