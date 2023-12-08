@@ -1,5 +1,9 @@
 # TP3_MD
-tp 3 minera de datos ..... ppp
+TP 3 Minería de Datos
 
-### instalacion
+## Integrantes:
+- Ponce, Daniel
+- Yañez, Mirian
+
+### Instalación
 pip install -r requirements.txt

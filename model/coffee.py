@@ -50,7 +50,7 @@ class CoffeeModel:
             print('Tiene un total de 835 datos y 11 variables. '
                   'Se puede observar que se cuenta con 10 variables numéricas (int64) y 1 variable categórica '
                   '(object).No hay datos nulos')
-            print(self.data.describe)
+            print(self.data.describe())
             print('Distribución de Colores')
             plt.figure(figsize=(8, 6))
             sns.countplot(x='Color', data=self.data, palette='viridis')
