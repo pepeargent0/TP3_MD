@@ -7,3 +7,4 @@ plotly
 dash-cytoscape
 pydantic
 tabulate
+jupyter
